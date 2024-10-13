@@ -124,6 +124,20 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="layoutWidget">
+       <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <item>
+         <widget class="QLineEdit" name="blurLineEdit"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="blurButton">
+          <property name="text">
+           <string>blur_button</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
       <widget class="QPushButton" name="roi_button">
        <property name="text">
         <string>roi_button</string>

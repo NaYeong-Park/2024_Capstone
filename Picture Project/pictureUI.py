@@ -38,6 +38,7 @@ class AugmentationApp(QtWidgets.QMainWindow):
         self.point_mode = False  # 포인트 모드 변수 초기화
         self.sticker_mode = False  # 스티커 모드 플래그 초기화
         self.roi_selected = False
+        self.is_blur_selected = False # blur_button을 눌렀는지 여부
 
         self.graphicsView.setMouseTracking(True)  # 마우스 추적 활성화
         self.selectionRect = None  # 초기 roi 사각형 초기화
@@ -56,6 +57,7 @@ class AugmentationApp(QtWidgets.QMainWindow):
         self.brightButton.clicked.connect(self.adjust_brightness)
         self.rotateButton.clicked.connect(self.rotate_image)
         self.resizeButton.clicked.connect(self.resize_image)
+        self.blurButton.clicked.connect(self.blur_selected_area)
 
         self.brightButton_2.clicked.connect(self.roi_adjust_brightness)
         self.rotateButton_2.clicked.connect(self.roi_rotate_image)
@@ -250,9 +252,13 @@ class AugmentationApp(QtWidgets.QMainWindow):
             w = self.currentPoint.x() - self.x0
             h = self.currentPoint.y() - self.y0
             if w > 0 and h > 0:
-                self.modified2_image = self.modified_image[int(self.y0):int(self.y0 + h), int(self.x0):int(self.x0 + w)]
-                self.roi_selected = True
-                self.display_image2(self.modified2_image)
+                if self.is_blur_selected:
+                    self.show_blur()   
+                else: 
+                    self.modified2_image = self.modified_image[int(self.y0):int(self.y0 + h), int(self.x0):int(self.x0 + w)]
+                    self.roi_selected = True
+                    self.display_image2(self.modified2_image)
+                
             if self.selectionRect:
                 self.scene.removeItem(self.selectionRect)
                 self.selectionRect = None
@@ -547,6 +553,44 @@ class AugmentationApp(QtWidgets.QMainWindow):
         self.modified2_image = cv2.resize(self.original_image, new_dimensions, interpolation=cv2.INTER_LINEAR)
         self.display_image2(self.modified2_image)
         self.lineEdit_re.setText(str(scale_factor))
+
+    def blur_selected_area(self):
+        self.toggle_roi_mode()
+        self.is_blur_selected = True
+
+    def show_blur(self):
+        self.add_log(self.blur_lineEdit.text())
+        try:
+            x = int(self.x0)
+            y = int(self.y0)
+            w = int(self.currentPoint.x() - self.x0)
+            h = int(self.currentPoint.y() - self.y0)
+            blur_amount = int(self.blurLineEdit.text())
+
+            if not (1 <= blur_amount <= 255):
+                self.add_log("Error-Blur amount must be between 1 and 255.")
+                return
+
+            if blur_amount % 2 == 0:
+                blur_amount += 1
+
+            roi = self.modified_image[y:int(y + h), x:int(x + w)]
+            blurred_roi = cv2.GaussianBlur(roi, (blur_amount, blur_amount), 0)
+            self.modified_image[y:int(y + h), x:int(x + w)] = blurred_roi
+            final_image = cv2.cvtColor(self.modified_image, cv2.COLOR_BGR2RGB)
+
+            qImg = QImage(final_image.data, final_image.shape[1], final_image.shape[0], final_image.strides[0], QImage.Format_RGB888)
+            blur_pixmap = QPixmap.fromImage(qImg)
+            self.scene2.clear()
+            pixmapItem = QGraphicsPixmapItem(blur_pixmap)
+            self.scene2.addItem(pixmapItem)
+            self.graphicsView2.setScene(self.scene2)
+            self.graphicsView2.setSceneRect(pixmapItem.boundingRect())
+
+            self.add_log("Blur applied to selected area with intensity: {}".format(blur_amount))
+
+        except ValueError:
+            self.add_log("Error-Invalid input. 여기")
 
 #######################    roi 증강  ##################################################################################################################################################################
     def add_log(self, message):
