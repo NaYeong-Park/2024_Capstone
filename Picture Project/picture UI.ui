@@ -138,6 +138,23 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="layoutWidget">
+        <layout class="QHBoxLayout" name="horizontalLayout_8">
+          <item>
+          <widget class="QPushButton" name="crop_button">
+            <property name="text">
+            <string>crop_button</string>
+            </property>
+            <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+            </sizepolicy>
+            </property>
+          </widget>
+          </item>
+        </layout>
+      </widget>
       <widget class="QPushButton" name="roi_button">
        <property name="text">
         <string>roi_button</string>
